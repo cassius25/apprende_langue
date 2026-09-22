@@ -893,7 +893,7 @@ Les contributions sont bienvenues ! Merci de lire [CONTRIBUTING.md](./CONTRIBUTI
 
 ```bash
 # 1. Fork & clone
-git clone https://github.com/VOTRE_USERNAME/langapp.git
+git clone https://github.com/cassius25/apprendre_langue.git
 cd langapp
 
 # 2. Branche
