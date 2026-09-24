@@ -1,0 +1,45 @@
+{
+  "@@locale": "fr",
+
+  "appName": "LangApp",
+  "appTagline": "Apprendre les langues, un jour à la fois",
+
+  "commonOk": "OK",
+  "commonCancel": "Annuler",
+  "commonConfirm": "Confirmer",
+  "commonSave": "Enregistrer",
+  "commonDelete": "Supprimer",
+  "commonRetry": "Réessayer",
+  "commonClose": "Fermer",
+  "commonContinue": "Continuer",
+  "commonBack": "Retour",
+  "commonNext": "Suivant",
+  "commonSkip": "Passer",
+  "commonFinish": "Terminer",
+  "commonLoading": "Chargement…",
+  "commonError": "Une erreur est survenue",
+  "commonNoInternet": "Pas de connexion internet",
+
+  "splashLoading": "Chargement…",
+
+  "navHome": "Accueil",
+  "navLearn": "Apprendre",
+  "navReview": "Réviser",
+  "navStatistics": "Statistiques",
+  "navProfile": "Profil",
+
+  "homeGreeting": "Bonjour !",
+  "homeContinueLearning": "Continuer l’apprentissage",
+  "homeReviewsToday": "À réviser aujourd’hui",
+  "homeDailyGoal": "Objectif du jour",
+  "homeProgress": "Progression",
+  "homeStreak": "Série",
+  "homeStreakDays": "{count, plural, =1{1 jour} other{{count} jours}}",
+  "@homeStreakDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "errorNetwork": "Impossible de joindre le serveur. Réessayez.",
+  "errorUnknown": "Une erreur inattendue est survenue.",
+  "errorUnauthorized": "Veuillez vous reconnecter."
+}

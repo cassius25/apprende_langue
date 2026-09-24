@@ -1,0 +1,45 @@
+{
+  "@@locale": "en",
+
+  "appName": "LangApp",
+  "appTagline": "Learn languages, one day at a time",
+
+  "commonOk": "OK",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonRetry": "Retry",
+  "commonClose": "Close",
+  "commonContinue": "Continue",
+  "commonBack": "Back",
+  "commonNext": "Next",
+  "commonSkip": "Skip",
+  "commonFinish": "Finish",
+  "commonLoading": "Loading...",
+  "commonError": "Something went wrong",
+  "commonNoInternet": "No internet connection",
+
+  "splashLoading": "Loading…",
+
+  "navHome": "Home",
+  "navLearn": "Learn",
+  "navReview": "Review",
+  "navStatistics": "Statistics",
+  "navProfile": "Profile",
+
+  "homeGreeting": "Hello!",
+  "homeContinueLearning": "Continue learning",
+  "homeReviewsToday": "Due today",
+  "homeDailyGoal": "Daily goal",
+  "homeProgress": "Progress",
+  "homeStreak": "Streak",
+  "homeStreakDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@homeStreakDays": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "errorNetwork": "Unable to reach the server. Please try again.",
+  "errorUnknown": "An unexpected error occurred.",
+  "errorUnauthorized": "Please sign in again."
+}
