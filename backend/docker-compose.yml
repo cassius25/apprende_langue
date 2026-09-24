@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+    postgres:
+        image: postgres:16-alpine
+        container_name: langapp-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: langapp
+        ports:
+            - '5432:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres -d langapp']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+    api:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: langapp-api
+        restart: unless-stopped
+        depends_on:
+            postgres:
+                condition: service_healthy
+        environment:
+            NODE_ENV: production
+            PORT: 4000
+            DATABASE_URL: postgresql://postgres:postgres@postgres:5432/langapp?schema=public
+            JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret-min-32-chars-long}
+            JWT_ACCESS_EXPIRES_IN: 15m
+            JWT_REFRESH_EXPIRES_IN_DAYS: 30
+            CORS_ORIGINS: '*'
+            LOG_LEVEL: info
+        ports:
+            - '4000:4000'
+        command: sh -c "npx prisma migrate deploy && node dist/server.js"
+
+volumes:
+    postgres_data:

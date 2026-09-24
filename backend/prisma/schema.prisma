@@ -1,0 +1,522 @@
+// ============================================================
+// Prisma schema — Language Learning App
+// ============================================================
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  USER
+  ADMIN
+  CONTENT_MANAGER
+}
+
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum LessonContentType {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  MARKDOWN
+}
+
+enum ExerciseType {
+  MULTIPLE_CHOICE
+  TRANSLATION
+  FILL_IN_THE_BLANK
+  MATCHING
+  WORD_ORDER
+  LISTENING
+  PRONUNCIATION
+}
+
+enum VocabularyState {
+  NEW
+  LEARNING
+  REVIEW
+  MASTERED
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum GoalType {
+  MINUTES
+  WORDS
+}
+
+enum SkillType {
+  VOCABULARY
+  GRAMMAR
+  LISTENING
+  READING
+  SPEAKING
+  WRITING
+}
+
+enum SyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+}
+
+// ============================================================
+// IDENTITY
+// ============================================================
+
+model User {
+  id                    String    @id @default(uuid()) @db.Uuid
+  email                 String    @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  role                  Role      @default(USER)
+  emailVerified         Boolean   @default(false)
+  emailVerificationToken String?
+  passwordResetToken    String?
+  passwordResetExpires  DateTime?
+  nativeLanguageId      String?   @db.Uuid
+  xp                    Int       @default(0)
+  userLevel             Int       @default(1)
+  lastLoginAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+
+  nativeLanguage   Language?        @relation("UserNativeLanguage", fields: [nativeLanguageId], references: [id])
+  userLanguages    UserLanguage[]
+  refreshTokens    RefreshToken[]
+  progress         UserProgress[]
+  userVocabulary   UserVocabulary[]
+  reviewSessions   ReviewSession[]
+  dailyGoals       DailyGoal[]
+  dailyActivities  DailyActivity[]
+  streak           Streak?
+  userBadges       UserBadge[]
+  syncOperations   SyncOperation[]
+
+  @@index([email])
+  @@index([deletedAt])
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  tokenHash  String    @unique
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+// ============================================================
+// CONTENT — Languages / Levels / Courses / Modules / Lessons
+// ============================================================
+
+model Language {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique              // "fr", "en", "es"
+  name        String                        // "Français"
+  nativeName  String                        // "Français"
+  flagEmoji   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  usersNative       User[]                 @relation("UserNativeLanguage")
+  userLanguages     UserLanguage[]
+  courses           Course[]
+  vocabulary        Vocabulary[]
+  translations      VocabularyTranslation[]
+
+  @@index([code])
+}
+
+model Level {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        CefrLevel @unique
+  name        String
+  description String?
+  order       Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  courses       Course[]
+  vocabulary    Vocabulary[]
+}
+
+model Course {
+  id          String   @id @default(uuid()) @db.Uuid
+  languageId  String   @db.Uuid
+  levelId     String   @db.Uuid
+  title       String
+  description String?
+  order       Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  language Language @relation(fields: [languageId], references: [id])
+  level    Level    @relation(fields: [levelId], references: [id])
+  modules  Module[]
+
+  @@index([languageId, levelId])
+  @@index([isPublished])
+}
+
+model Module {
+  id          String   @id @default(uuid()) @db.Uuid
+  courseId    String   @db.Uuid
+  title       String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId])
+}
+
+model Lesson {
+  id                String   @id @default(uuid()) @db.Uuid
+  moduleId          String   @db.Uuid
+  title             String
+  description       String?
+  order             Int      @default(0)
+  estimatedDuration Int      @default(5) // minutes
+  isPublished       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  module       Module          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  contents     LessonContent[]
+  exercises    Exercise[]
+  userProgress UserProgress[]
+
+  @@index([moduleId])
+}
+
+model LessonContent {
+  id        String            @id @default(uuid()) @db.Uuid
+  lessonId  String            @db.Uuid
+  type      LessonContentType
+  content   String            // markdown, url, etc.
+  order     Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+}
+
+// ============================================================
+// VOCABULARY
+// ============================================================
+
+model Vocabulary {
+  id            String   @id @default(uuid()) @db.Uuid
+  languageId    String   @db.Uuid
+  levelId       String   @db.Uuid
+  word          String
+  phonetic      String?
+  audioUrl      String?
+  imageUrl      String?
+  category      String?
+  partOfSpeech  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  language     Language                @relation(fields: [languageId], references: [id])
+  level        Level                   @relation(fields: [levelId], references: [id])
+  translations VocabularyTranslation[]
+  examples     VocabularyExample[]
+  userVocab    UserVocabulary[]
+
+  @@index([languageId])
+  @@index([levelId])
+  @@index([word])
+}
+
+model VocabularyTranslation {
+  id           String   @id @default(uuid()) @db.Uuid
+  vocabularyId String   @db.Uuid
+  languageId   String   @db.Uuid
+  translation  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vocabulary Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id])
+
+  @@unique([vocabularyId, languageId])
+  @@index([vocabularyId])
+}
+
+model VocabularyExample {
+  id           String   @id @default(uuid()) @db.Uuid
+  vocabularyId String   @db.Uuid
+  sentence     String
+  translation  String?
+  audioUrl     String?
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vocabulary Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+
+  @@index([vocabularyId])
+}
+
+// ============================================================
+// EXERCISES
+// ============================================================
+
+model Exercise {
+  id            String       @id @default(uuid()) @db.Uuid
+  lessonId      String       @db.Uuid
+  type          ExerciseType
+  question      String
+  correctAnswer String?
+  explanation   String?
+  data          Json?        // payload spécifique (ex: matching pairs)
+  order         Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options ExerciseOption[]
+
+  @@index([lessonId])
+}
+
+model ExerciseOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  exerciseId String   @db.Uuid
+  label      String
+  isCorrect  Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([exerciseId])
+}
+
+// ============================================================
+// LEARNING
+// ============================================================
+
+model UserLanguage {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  languageId      String    @db.Uuid
+  levelId         String?   @db.Uuid
+  progressPercent Float     @default(0)
+  isActive        Boolean   @default(true)
+  startedAt       DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@unique([userId, languageId])
+  @@index([userId])
+}
+
+model UserProgress {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @db.Uuid
+  lessonId     String         @db.Uuid
+  status       ProgressStatus @default(NOT_STARTED)
+  score        Int            @default(0)
+  timeSpentSec Int            @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+model UserVocabulary {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @db.Uuid
+  vocabularyId   String          @db.Uuid
+  state          VocabularyState @default(NEW)
+  isFavorite     Boolean         @default(false)
+  repetitions    Int             @default(0)
+  intervalDays   Int             @default(0)
+  easeFactor     Float           @default(2.5)
+  difficulty     Float           @default(0)
+  successRate    Float           @default(0)
+  nextReviewAt   DateTime?
+  lastReviewedAt DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary   Vocabulary       @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  reviewSessions ReviewSession[]
+
+  @@unique([userId, vocabularyId])
+  @@index([userId, state])
+  @@index([userId, nextReviewAt])
+}
+
+model ReviewSession {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @db.Uuid
+  userVocabularyId String   @db.Uuid
+  quality          Int      // 0..5 (SM-2)
+  responseTimeMs   Int?
+  reviewedAt       DateTime @default(now())
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userVocabulary UserVocabulary @relation(fields: [userVocabularyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, reviewedAt])
+}
+
+// ============================================================
+// ENGAGEMENT — Goals / Activity / Streaks / Badges
+// ============================================================
+
+model DailyGoal {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  type      GoalType
+  target    Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+}
+
+model DailyActivity {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  date           DateTime @db.Date
+  minutesLearned Int      @default(0)
+  wordsLearned   Int      @default(0)
+  wordsReviewed  Int      @default(0)
+  exercisesDone  Int      @default(0)
+  exercisesCorrect Int    @default(0)
+  xpEarned       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model Streak {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @db.Uuid
+  currentStreak   Int       @default(0)
+  longestStreak   Int       @default(0)
+  totalActiveDays Int       @default(0)
+  lastActiveDate  DateTime? @db.Date
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  name        String
+  description String
+  icon        String?
+  condition   Json?    // ex: {"type":"STREAK","value":7}
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(uuid()) @db.Uuid
+  userId   String   @db.Uuid
+  badgeId  String   @db.Uuid
+  earnedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+}
+
+// ============================================================
+// SYNC
+// ============================================================
+
+model SyncOperation {
+  id              String     @id @default(uuid()) @db.Uuid
+  userId          String     @db.Uuid
+  entity          String     // "user_vocabulary", "user_progress", ...
+  entityId        String     @db.Uuid
+  op              String     // "UPSERT", "DELETE"
+  payload         Json?
+  status          SyncStatus @default(PENDING)
+  clientTimestamp DateTime
+  retryCount      Int        @default(0)
+  errorMessage    String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, clientTimestamp])
+}
