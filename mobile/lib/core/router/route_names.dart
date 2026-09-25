@@ -4,8 +4,6 @@ class RouteNames {
   // Root
   static const String splash = 'splash';
   static const String home = 'home';
-
-  // Auth
   static const String login = 'login';
   static const String register = 'register';
   static const String forgotPassword = 'forgot-password';
