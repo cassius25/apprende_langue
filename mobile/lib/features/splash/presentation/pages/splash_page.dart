@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:langapp/features/auth/presentation/providers/auth_controller.dart';
 
-import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Écran de démarrage — placeholder.
-/// En Partie 13, il vérifiera l'auth locale puis redirigera vers
-/// /onboarding, /auth/login ou /home.
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -23,9 +19,8 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   }
 
   Future<void> _bootstrap() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    context.goNamed(RouteNames.home);
+    // Le contrôleur met à jour l'état auth → GoRouter redirige automatiquement.
+    await ref.read(authControllerProvider.notifier).bootstrap();
   }
 
   @override

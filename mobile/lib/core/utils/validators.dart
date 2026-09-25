@@ -40,8 +40,9 @@ class Validators {
     int min, [
     String field = 'Ce champ',
   ]) {
-    if ((value ?? '').length < min)
+    if ((value ?? '').length < min) {
       return '$field doit contenir au moins $min caractères';
+    }
     return null;
   }
 
@@ -50,8 +51,9 @@ class Validators {
     int max, [
     String field = 'Ce champ',
   ]) {
-    if ((value ?? '').length > max)
+    if ((value ?? '').length > max) {
       return '$field doit contenir au plus $max caractères';
+    }
     return null;
   }
 

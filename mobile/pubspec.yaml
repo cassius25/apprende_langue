@@ -42,7 +42,7 @@ dependencies:
 
     # ─── Audio ─────────────────────────────────────────
     just_audio: ^0.9.42
-    record: ^5.1.2
+    record: ^6.1.1
 
     # ─── Utils ─────────────────────────────────────────
     intl: ^0.20.2
@@ -55,6 +55,18 @@ dependencies:
 
     cupertino_icons: ^1.0.8
 
+    # ─── Local database (Drift / SQLite) ───────────────
+    # drift: ^2.31.0
+    # drift_flutter: ^0.3.1
+    # sqlite3_flutter_libs: ^0.6.0+eol
+    # path_provider: ^2.1.6
+    # path: ^1.9.1
+    drift: ^2.22.1
+    drift_flutter: ^0.2.2
+    sqlite3_flutter_libs: ^0.5.28
+    path_provider: ^2.1.5
+    path: ^1.9.0
+
 dev_dependencies:
     flutter_test:
         sdk: flutter
@@ -62,18 +74,21 @@ dev_dependencies:
         sdk: flutter
 
     # ─── Codegen ───────────────────────────────────────
-    build_runner: ^2.4.13
+    build_runner: ^2.5.4
     freezed: ^2.5.7
     json_serializable: ^6.9.0
     riverpod_generator: ^2.6.3
     custom_lint: ^0.7.0
     riverpod_lint: ^2.6.3
+    drift_dev: ^2.22.1
 
     # ─── Lints ─────────────────────────────────────────
     flutter_lints: ^5.0.0
 
     # ─── Tests ─────────────────────────────────────────
     mocktail: ^1.0.4
+dependency_overrides:
+    analyzer_plugin: ^0.13.1
 
 flutter:
     uses-material-design: true

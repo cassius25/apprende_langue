@@ -14,6 +14,8 @@ class AppPreferences {
     return AppPreferences(prefs);
   }
 
+  SharedPreferences get raw => _prefs;
+
   // ─── Locale ──────────────────────────────────────────────
   String? get localeCode => _prefs.getString(AppConstants.kLocaleKey);
   Future<void> setLocaleCode(String code) =>
